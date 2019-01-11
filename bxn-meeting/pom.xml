@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>cn.boxiao.bxn</groupId>
+    <artifactId>bxn-meeting</artifactId> 
+    <version>6.0.1-SNAPSHOT</version>
+    <packaging>war</packaging>
+    <parent>
+        <groupId>cn.boxiao.bxn</groupId>
+        <artifactId>bxn-parent</artifactId> 
+        <version>6.0.9-RELEASE</version>
+    </parent>
+    <dependencies>
+		<dependency>
+			<groupId>cn.boxiao.bxn</groupId>
+		  	<artifactId>bxn-core-base</artifactId>
+		  	<version>6.3.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>cn.boxiao.bxn</groupId>
+			<artifactId>bxn-core-uic-client</artifactId>
+			<version>6.2.2-RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>cn.boxiao.bxi</groupId>
+			<artifactId>bxi-common-client</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		  <!-- json -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.7</version>
+        </dependency>
+        
+            <!--common-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.4</version>
+        </dependency>
+        
+        
+		<dependency>
+			<groupId>org.quartz-scheduler</groupId>
+			<artifactId>quartz</artifactId>
+			<version>2.2.1</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>c3p0</artifactId>
+					<groupId>c3p0</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
+    <build>
+        <finalName>bxn-meeting</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.mortbay.jetty</groupId>
+                <artifactId>jetty-maven-plugin</artifactId>
+                <version>8.1.3.v20120416</version>
+                <configuration>
+                    <contextXml>${project.basedir}/src/test/resources/jetty-context.xml</contextXml>
+                    <webApp>
+                        <contextPath>/bxn-meeting</contextPath>
+                        <extraClasspath>
+                            ${basedir}/../bxn-meeting/target/classes,
+                        </extraClasspath>
+                    </webApp>
+                    <!-- <connectors>
+						<connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector"><port>30490</port></connector>
+					</connectors>  -->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

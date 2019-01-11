@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+       http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd
+       http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd"
+       default-lazy-init="true">
+
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="resolveLazily" value="true"/>
+    </bean>
+
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="useCodeAsDefaultMessage" value="true"/>
+        <property name="basename" value="message"></property>
+    </bean>
+    <mvc:annotation-driven>
+        <mvc:argument-resolvers>
+            <bean class="cn.boxiao.bxn.common.web.PageableArgumentResolver" />
+        </mvc:argument-resolvers>
+    </mvc:annotation-driven>
+
+    <mvc:interceptors>
+        <bean class="cn.boxiao.bxn.common.security.SystemInvokeSecureInterceptor"/>
+    </mvc:interceptors>
+
+    <mvc:resources mapping="/resources/**" location="/resources/"/>
+
+    <mvc:default-servlet-handler/>
+
+    <context:component-scan base-package="cn.boxiao.bxn.**.controller,cn.boxiao.bxn.**.controller.**">
+        <!-- <context:exclude-filter type="regex" expression="cn.boxiao.bxn.common.web.controller.proxy.ParticipantRuleProxyController" /> -->
+    </context:component-scan>
+
+    <!-- Add additional controller beans here -->
+    <!--<mvc:view-controller path="/landing" view-name="landing"/>-->
+    <!-- View Resolver for JSPs -->
+    <bean id="internalResourceViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="order" value="2" />
+        <property name="requestContextAttribute" value="rc"/>
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+        <property name="prefix" value="/WEB-INF/pages/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <bean id="exceptionResolver" class="cn.boxiao.bxn.common.web.BxnHandlerExceptionResovler">
+        <property name="warnLogCategory" value="rootLogger"></property>
+        <property name="exceptionAttribute" value="ex"></property>
+        <property name="defaultErrorView" value="error/500"></property>
+        <property name="defaultStatusCode" value="500"></property>
+        <property name="statusCodes">
+            <props>
+                <prop key="error/403">403</prop>
+                <!-- error/404.jsp -->
+                <prop key="error/404">404</prop>
+                <!-- error/error.jsp -->
+                <prop key="error/500">500</prop>
+            </props>
+        </property>
+        <property name="exceptionMappings">
+            <props>
+            	<prop key="org.springframework.http.converter.HttpMessageNotReadableException">error/500</prop>
+                <prop key="org.springframework.security.access.AccessDeniedException">error/403</prop>
+                <prop key="java.lang.Throwable">error/500</prop>
+            </props>
+        </property>
+
+    </bean>
+    <!-- 配置全局的方法安全拦截器机制-->
+    <security:global-method-security access-decision-manager-ref="accessDecisionManager"  secured-annotations="enabled" proxy-target-class="true"/>
+</beans>

@@ -1,0 +1,90 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:context="http://www.springframework.org/schema/context"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+           http://www.springframework.org/schema/security
+           http://www.springframework.org/schema/security/spring-security-3.2.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-3.2.xsd" default-lazy-init="false">
+    <http  pattern="/resources/**"  security="none"></http>
+    <http  pattern="/dynamic/**"  security="none"></http>
+    <http  pattern="/api/**"  security="none"></http>
+    <http  pattern="/api-client/**"  security="none"></http>
+    <http  pattern="/api-equip/**"  security="none"></http>
+    <http  pattern="/api-equipsrv/**"  security="none"></http>
+    <http  pattern="/api-bxn-cloud/**"  security="none"></http>
+    <http  pattern="/api-bxn-bxn/**"  security="none"></http>
+    <http  pattern="/api-anonymous/**"  security="none"></http>
+    <http  pattern="/rest/**"  security="none"></http>
+    <http  pattern="/bxc/api/**"  security="none"></http>
+    <http  pattern="/mobile/api/**"  security="none"></http>
+    <http  pattern="/mobile/download/**"  security="none"></http>
+    <http  pattern="/web-inf/pages/**"  security="none"></http>
+    <http entry-point-ref="casEntryPoint" access-decision-manager-ref="accessDecisionManager">
+        <intercept-url pattern="/login**" access="PERM_ANONYMOUS"/>
+        <intercept-url pattern="/WEB-INF/pages/error/**" access="PERM_ANONYMOUS"/>
+        <intercept-url pattern="/j_spring_cas_security_check" access="PERM_ANONYMOUS"/>
+        <intercept-url pattern="/logout" access="PERM_ANONYMOUS"/>
+        <intercept-url pattern="/participant-select/**" access="PERM_USER"/>
+        <intercept-url pattern="/**" access="PERM_USER" />
+		<intercept-url pattern="/systemadmin/**" access="${module.adminpermission}"/>
+        <intercept-url pattern="/toolkit/manage/**" access="${module.adminpermission}"/>
+        <logout logout-url="/logout" logout-success-url="${sso.protocol}://${sso.server.host}/sso/logout"/>
+
+        <custom-filter ref="singleLogoutFilter" before="CAS_FILTER"/>
+        <custom-filter ref="casFilter" after="CAS_FILTER"/>
+        <custom-filter ref="customizedExceptionFilter" after="EXCEPTION_TRANSLATION_FILTER"/>
+    </http>
+
+    <!-- 客户端配置 -->
+    <beans:bean id="serviceProperties" class="org.springframework.security.cas.ServiceProperties">
+        <beans:property name="service" value="http://${server.address}${module.contextPath}${cloud.schoolCode}/j_spring_cas_security_check" />
+        <beans:property name="sendRenew" value="false" />
+    </beans:bean>
+
+    <!-- CAS 认证入口 -->
+    <beans:bean id="casEntryPoint" class="cn.boxiao.bxn.common.security.CasAuthenticationEntryAPPPoint">
+        <beans:property name="loginUrl" value="${sso.protocol}://${sso.server.host}/sso/login" />
+        <beans:property name="serviceProperties" ref="serviceProperties" />
+        <beans:property name="weiChatCorpId" value="${weichat.corpId}"/>
+    </beans:bean>
+
+    <!-- CAS 认证过滤器，认证管理器、成功、失败配置 -->
+    <beans:bean id="casFilter" class="org.springframework.security.cas.web.CasAuthenticationFilter">
+        <beans:property name="authenticationManager" ref="authenticationManager" />
+        <beans:property name="authenticationFailureHandler">
+            <beans:bean class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler">
+                <beans:property name="defaultFailureUrl" value="/casfailed.jsp"/>
+            </beans:bean>
+        </beans:property>
+    </beans:bean>
+
+    <authentication-manager alias="authenticationManager">
+        <authentication-provider ref="casAuthenticationProvider"/>
+    </authentication-manager>
+
+    <beans:bean id="casAuthenticationProvider" class="org.springframework.security.cas.authentication.CasAuthenticationProvider">
+        <beans:property name="authenticationUserDetailsService">
+            <beans:bean class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
+                <beans:constructor-arg ref="userDetailsService" />
+            </beans:bean>
+        </beans:property>
+        <beans:property name="serviceProperties" ref="serviceProperties" />
+        <beans:property name="ticketValidator">
+            <beans:bean class="org.jasig.cas.client.validation.Cas20ServiceTicketValidator">
+                <beans:constructor-arg index="0" value="${sso.server.inneraddress}/sso" />
+            </beans:bean>
+        </beans:property>
+        <beans:property name="key" value="${remote.current_app_key}" />
+    </beans:bean>
+
+    <!-- CAS 登出过滤器 -->
+    <beans:bean id="singleLogoutFilter" class="org.jasig.cas.client.session.SingleSignOutFilter" />
+    <beans:bean id="customizedExceptionFilter" class="cn.boxiao.bxn.common.security.AjaxExceptionTranslationFilter"/>
+    <beans:bean id="accessDecisionManager"  class="cn.boxiao.bxn.common.security.AccessDecisionManagerImpl"/>
+    <beans:bean id="userDetailsService" class="cn.boxiao.bxn.uic.client.rest.RestUserDetailsServiceImpl">
+        <beans:property name="remoteUserCenterServiceInvoker" ref="remoteUserCenterServiceInvoker"/>
+    </beans:bean>
+</beans:beans>

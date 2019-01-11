@@ -1,0 +1,28 @@
+<decorators defaultdir="/decorators">
+    <excludes>
+        <pattern>/*unwrap=true*</pattern>
+        <pattern>/resources/*</pattern>
+        <pattern>/*login*</pattern>
+        <pattern>/*mobile*</pattern>
+    </excludes>
+    <decorator name="mis" page="mis2.0.jsp">
+        <pattern>/*</pattern>
+    </decorator>
+    <decorator name="blank" page="blank.jsp">
+    	<pattern>/blank*</pattern>
+    </decorator>
+    <decorator name="fly" page="fly.jsp">
+    	<pattern>*/fly*</pattern>
+    </decorator>
+    <decorator name="mobile" page="mis2.0-mobile.jsp">
+    	<pattern>*/bxm/*</pattern>
+    </decorator>
+    <decorator name="wxmobile" page="wx-mobile.jsp"> 
+    	<pattern>*/wxmobile/*</pattern> 
+    </decorator>
+    <decorator name="mis-no-menu" page="mis2.0-no-menu.jsp"></decorator>
+    <decorator name="mis-index" page="mis2.0-index.jsp"></decorator>
+    <decorator name="mis-index-blue" page="mis2.0-index-blue.jsp"></decorator>
+    <decorator name="print" page="mis2.0-print.jsp"></decorator>
+    <decorator name="fly-show" page="fly-show.jsp"></decorator>
+</decorators>

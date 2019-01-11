@@ -1,0 +1,56 @@
+[{
+    "username": "888888",
+    "authorities": [
+      "PERM_USER",
+      "PERM_ARRANGECOURSE",
+      "PERM_CUSTOMCOURSE",
+      "PERM_CLASSROOM",
+      "PERM_ADJUSTCOURSE",
+      "PERM_CLAZZCOURSE",
+      "PERM_SCHOOLCOURSE",
+      "PERM_TIMETABLE_MANAGER",
+      "PERM_SYSTEM_ADMIN"
+    ]
+  },{
+    "username": "admin",
+    "authorities": [
+      "PERM_USER",
+      "PERM_MEETING_OWNER",
+      "PERM_CUSTOMCOURSE",
+      "PERM_CLASSROOM",
+      "PERM_ADJUSTCOURSE",
+      "PERM_CLAZZCOURSE",
+      "PERM_SCHOOLCOURSE",
+      "PERM_TIMETABLE_MANAGER",
+      "PERM_SYSTEM_ADMIN"
+    ]
+  },
+  {
+  "username": "20181119",
+  "authorities": [
+    "PERM_USER",
+    "PERM_MEETING_OWNER",
+    "PERM_CLASSROOM",
+    "PERM_ADJUSTCOURSE",
+     "PERM_MEETING_ADMIN",
+    "PERM_CLAZZCOURSE",
+    "PERM_SCHOOLCOURSE",
+    "PERM_TIMETABLE_MANAGER",
+    "PERM_SYSTEM_ADMIN"
+  ]
+},
+  {
+    "username": "wujia",
+    "authorities": [
+      "PERM_USER",
+      "PERM_TEACHER"
+    ]
+  },
+  {
+    "username": "tanjiaolan",
+    "authorities": [
+      "PERM_USER",
+      "PERM_TEACHER"
+    ]
+  }
+]

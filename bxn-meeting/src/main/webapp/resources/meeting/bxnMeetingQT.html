@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>扫码签到</title>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	 	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+		<script type="text/javascript" charset="utf-8" src="../common/js/lib/jquery.1.12.4.min.js"></script>
+		<script type="text/javascript" charset="utf-8" src="../common/js/lib/underscore-min.js"></script>
+		<style>
+			html,body{
+				padding: 0;
+				margin: 0;
+			}
+			.page-content{
+			    width: 100%;
+			    height: 100%;
+			    background: #fff;
+			}
+			.page-content .content{
+				position: absolute;
+				width: 100%;
+				height: 300px;
+				top: 50%;
+				margin-top: -150px;
+
+				text-align: center;
+			}
+			.content p.status{
+				font-size: 16px;
+			}
+			.content span.time{
+				font-size: 14px;
+				color: #999;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="page-content">
+
+		</div>
+	</body>
+
+
+	<script type="text/template" id="loading">
+		<div class="content loading">
+			<img src="image/loading.png" alt="打卡中...">
+			<p class="status">打卡中...</p>
+		</div>
+	</script>
+	<!-- 打卡后状态 -->
+	<script type="text/template" id="status_info">
+		<div class="content" style="color: <@=colorArr[index]@>">
+			<img src="image/<@=iconArr[index]@>.png" alt="">
+			<p class="status"><@=msgArr[index]@></p>
+			<!-- <span class="time">您打卡的时间为10:24</span> -->
+		</div>
+	</script>
+
+
+	<script type="text/javascript">
+
+		// 状态码
+		var statusArr = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '10', '98', '99'];
+		// 状态信息
+		var msgArr = ['打卡成功', '您迟到啦', '您早退啦', '您缺勤啦', '您漏卡啦', '您请了个公假', '您请了个私假', '您请了个病假', '您迟到/早退啦', '您请假啦', '您打卡超时，请重新打卡！', '无此用户', '异常错误，请重新打卡'];
+		// 状态颜色
+		var colorArr = ['#999', '#31abee', '#ff8e01', '#ff3e18', '#bd3eaa','#12ba49','#12ba49','#12ba49','#ff8e01', '#12ba49', '#999', '#999', '#999'];
+		// 状态图标
+		var iconArr = ['icon-0', 'icon-1', 'icon-2', 'icon-3', 'icon-4', 'icon-567', 'icon-567', 'icon-567', 'icon-2', 'icon-567', 'icon-error', 'icon-error', 'icon-error'];
+
+		var index;
+
+		$(function(){
+			var meetingId = getParamValue('meetingId');
+			var timestamp = getParamValue('timestamp');
+			var token = getParamValue('token');
+			
+			if(!meetingId || !timestamp || !token){
+				index = msgArr.length - 1;
+				$('.page-content').html(_.template($("#status_info").html()));
+				return false;
+			}
+			
+			$.ajax({
+				url: "/bxn-meeting/mobile/meeting/v1/attendances",
+				type: "POST",
+				cache : false,
+				dataType:'json',
+				data:{
+					'meetingId': meetingId,
+					'timestamp': timestamp,
+					'token': token
+				},
+				beforeSend:function(){
+					$('.page-content').html(_.template($("#loading").html()));
+				},
+				success: function(data){
+					
+					var status;
+					for (x in data){  
+						status = data[x];
+					}
+					
+					index = statusArr.indexOf(''+status);
+
+					$('.page-content').html(_.template($("#status_info").html()));
+				},
+				error: function(){
+					
+					index = msgArr.length - 1;
+					$('.page-content').html(_.template($("#status_info").html()));
+				}
+
+			})
+		})
+
+		/**
+		 * 从url中获取某一个参数的值
+		 * @param name(参数名)
+		 * @return result(参数值)
+		 */
+
+		function getParamValue(name) {
+			var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+			var r = decodeURI(window.location.search).substr(1).match(reg);
+			if (r != null) return unescape(r[2]);
+			return null;
+		}
+	</script>
+
+
+</html>

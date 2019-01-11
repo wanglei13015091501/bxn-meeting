@@ -1,0 +1,66 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:context="http://www.springframework.org/schema/context"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+           http://www.springframework.org/schema/security
+           http://www.springframework.org/schema/security/spring-security-3.2.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-3.2.xsd"
+           default-lazy-init="false">
+
+
+    <http  pattern="/resources/**"  security="none"></http>
+    <http  pattern="/dynamic/**"  security="none"></http>
+    <http  pattern="/api/**"  security="none"></http>
+    <http  pattern="/api-client/**"  security="none"></http>
+    <http  pattern="/api-equip/**"  security="none"></http>
+    <http  pattern="/api-equipsrv/**"  security="none"></http>
+    <http  pattern="/api-bxn-cloud/**"  security="none"></http>
+    <http  pattern="/api-bxn-bxn/**"  security="none"></http>
+    <http  pattern="/api-anonymous/**"  security="none"></http>
+    <http  pattern="/rest/**"  security="none"></http>
+    <http  pattern="/bxc/api/**"  security="none"></http>
+    <http  pattern="/mobile/api/**"  security="none"></http>
+    <http  pattern="/mobile/download/**"  security="none"></http>
+    <http  pattern="/web-inf/pages/**"  security="none"></http>
+    <beans:bean id="customizedExceptionFilter" class="cn.boxiao.bxn.common.security.AjaxExceptionTranslationFilter"/>
+
+    <!-- Customized AccessDeniedHandler -->
+    <beans:bean id="accessDecisionManager" class="cn.boxiao.bxn.common.security.AccessDecisionManagerImpl"/>
+        <http auto-config="true" access-decision-manager-ref="accessDecisionManager" >
+           <intercept-url pattern="/login**" access="PERM_ANONYMOUS"/>
+	        <intercept-url pattern="/WEB-INF/pages/error/**" access="PERM_ANONYMOUS"/>
+	        <intercept-url pattern="/j_spring_cas_security_check" access="PERM_ANONYMOUS"/>
+	        <intercept-url pattern="/logout" access="PERM_ANONYMOUS"/>
+	        <intercept-url pattern="/participant-select/**" access="PERM_USER"/>
+	        <intercept-url pattern="/**" access="PERM_USER" />
+			<intercept-url pattern="/systemadmin/**" access="${module.adminpermission}"/>
+            <intercept-url pattern="/toolkit/manage/**" access="${module.adminpermission}"/>
+            <form-login login-page="/login" login-processing-url="/j_security_check" authentication-failure-url="/login?error"/>
+            <logout logout-success-url="/login?logout" logout-url="/logout"/>
+            <custom-filter ref="customizedExceptionFilter" after="EXCEPTION_TRANSLATION_FILTER"/>
+        </http>
+        <!-- 用户认证管理：使用自定义的AuthenticationProvider -->
+        <authentication-manager>
+            <!-- 基于Username/password的验证provider，这里使用我们自定义的，因为需要处理HttpServletRequest信息 -->
+            <authentication-provider user-service-ref="userDetailsService" >
+                <password-encoder ref="passwordEncoder">
+                    <salt-source ref="saltSource"/>
+                </password-encoder>
+            </authentication-provider>
+        </authentication-manager>
+
+        <beans:bean id="userDetailsService" class="cn.boxiao.bxn._dev._DeveloperUse_RestUserDetailsServiceImpl">
+            <beans:property name="remoteUserCenterServiceInvoker" ref="remoteUserCenterServiceInvoker"/>
+        </beans:bean>
+        <!-- 产品环境一定不要用Plaintext方式 -->
+        <!--<beans:bean id="passwordEncoder" class="cn.boxiao.bxn.common.security.BxnMd5PasswordEncoder"/>-->
+        <beans:bean id="passwordEncoder" class="cn.boxiao.bxn.common.security.SsoMd5PasswordEncoder"/>
+        <!-- 加盐策略 -->
+        <!-- 保存用户时已经固定用username做salt，这里也一定要配置成username-->
+        <beans:bean id="saltSource" class="org.springframework.security.authentication.dao.ReflectionSaltSource">
+            <beans:property name="userPropertyToUse" value="username"/>
+        </beans:bean>
+</beans:beans>

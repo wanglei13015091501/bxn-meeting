@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress DuplicatedBeanNamesInspection -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:cache="http://www.springframework.org/schema/cache" 
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+       http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-3.2.xsd"
+       default-lazy-init="false">
+
+
+<!-- ================================================================================== -->
+<!-- ****************  @Autowired和扫描规则配置  ****************-->
+<!-- ================================================================================== -->
+<context:annotation-config/>
+<context:component-scan base-package="cn.boxiao.bxn.**.service,cn.boxiao.bxn.**.dao,cn.boxiao.bxn.uic.rule.**,cn.boxiao.bxn.common.**,cn.boxiao.bxn.common.boot.**"/>
+
+<cache:annotation-driven cache-manager="cacheManager" /> 
+<bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager"> 
+    <property name="cacheManager" ref="cacheManagerFactory"/> 
+</bean> 
+<bean id="cacheManagerFactory" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"> 
+	<property name="configLocation" value="/WEB-INF/application/ehcache.xml"/> 
+</bean> 
+<!-- ================================================================================== -->
+<!-- **************** 系统启动加载的内容 **************** -->
+<!-- ================================================================================== -->
+<bean id="systemIntialManager" class="cn.boxiao.bxn.common.boot.SystemIntialManager"></bean>
+<bean id="dictManager" class="cn.boxiao.bxn.common.boot.DictManager"></bean>
+
+
+<!-- ================================================================================== -->
+<!-- **************** 过滤器 **************** -->
+<!-- ================================================================================== -->
+<bean id="menuFilter" class="cn.boxiao.bxn.common.filter.MenuFilter"></bean>
+<bean id="mobileAuthenticatedBean" class="cn.boxiao.bxn.common.filter.MobileAuthenticationFilter">
+    <property name="schoolKey" value="${ibc.schoolKey}"/>
+    <property name="userDetailsService" ref="restUserDetailsService"/>
+</bean>
+<bean id="bxcAuthenticatedBean" class="cn.boxiao.bxn.common.filter.BxcAuthenticationFilter">
+    <property name="schoolKey" value="${ibc.schoolKey}"/>
+    <property name="schoolCode" value="${ibc.schoolCode}"/>
+</bean>
+<bean id="bxnBroswerAuthenticationBean" class="cn.boxiao.bxn.common.filter.BxnBroswerAuthenticationFilter">
+    <property name="appKey" value="${appkey}"/>
+    <property name="userDetailsService" ref="restUserDetailsService"/>
+</bean>
+<bean id="bxiEquipAuthenticationFilterBean" class="cn.boxiao.bxn.common.filter.BxiEquipAuthenticationFilter">
+    <property name="globalBXIKey" value="${bxi.globalBXIKey}"/>
+</bean>
+<bean id="bxiServiceAuthenticationFilterBean" class="cn.boxiao.bxn.common.filter.BxiServiceAuthenticationFilter">
+    <property name="globalBXIKey" value="${bxi.globalBXIKey}"/>
+</bean>
+<bean id="bxn2bxnServiceAuthenticationFilterBean" class="cn.boxiao.bxn.common.filter.Bxn2BxnServiceAuthenticationFilter">
+    <property name="clientCommonkey" value="${bxcClient.commonkey}"/>
+</bean>
+<bean id="bec2bxnServiceAuthenticationFilterBean" class="cn.boxiao.bxn.common.filter.Bec2BxnServiceAuthenticationFilter">
+    <property name="ibcCode" value="${ibc.schoolCode}"/>
+    <property name="ibcKey" value="${ibc.schoolKey}"/>
+</bean>
+<!-- ================================================================================== -->
+<!-- **************** 数据库和事务 **************** -->
+<!-- ================================================================================== -->
+<bean id="dataSource" class="org.logicalcobwebs.proxool.ProxoolDataSource"> 
+	<property name="driver" value="${db.driver}"/> 
+	<property name="driverUrl" value="${db.url}"/> 
+	<property name="user" value="${db.username}" /> 
+	<property name="password" value="${db.password}" /> 
+	<property name="alias" value="${db.alias}" /> 
+	<property name="prototypeCount" value="10" /> 
+	<property name="maximumConnectionCount" value="${db.maxConn}" /> 
+	<property name="minimumConnectionCount" value="${db.minConn}" /> 
+	<property name="simultaneousBuildThrottle" value="${db.simultaneous}" /> 
+	<property name="houseKeepingTestSql" value="select 1+1" /> 
+</bean>
+
+<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+    <property name="dataSource" ref="dataSource" />
+</bean>
+
+<bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+    <property name="dataSource" ref="dataSource"/>
+    <property name="packagesToScan" value="cn.boxiao.bxn.**.model" />
+    <property name="hibernateProperties">
+        <props>
+            <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+            <prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+            <prop key="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl}</prop>
+            <prop key="hibernate.cache.use_second_level_cache">${hibernate.use_second_level_cache}</prop>
+            <prop key="hibernate.cache.use_query_cache">${hibernate.use_query_cache}</prop>
+            <prop key="hibernate.cache.region.factory_class">${hibernate.cache_factory}</prop>
+            <prop key="hibernate.default_batch_fetch_size">16</prop>
+            <prop key="hibernate.max_fetch_depth">5</prop>
+            <prop key="hibernate.cache.provider_configuration_file_resource_path">ehcache.xml</prop>
+        </props>
+    </property>
+</bean>
+
+<bean id="baseModelInterceptor" class="cn.boxiao.bxn.base.model.BaseModelInterceptor"></bean>
+
+<bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+    <property name="sessionFactory" ref="sessionFactory"/>
+    <property name="entityInterceptor" ref="baseModelInterceptor"/>
+</bean>
+
+<tx:annotation-driven transaction-manager="transactionManager"/>
+
+<bean id="databaseInformation" class="cn.boxiao.bxn.common.service.MySQLDatabaseInformation">
+    <property name="jdbcTemplate" ref="jdbcTemplate"/>
+</bean>
+
+<bean id="restUserDetailsService" class="cn.boxiao.bxn.uic.client.rest.RestUserDetailsServiceImpl">
+    <property name="remoteUserCenterServiceInvoker" ref="remoteUserCenterServiceInvoker"/>
+</bean>
+
+<!-- ================================================================================== -->
+<!-- **************** REST客户端配置 **************** -->
+<!-- ================================================================================== -->
+<bean id="restTemplate" class="cn.boxiao.bxn.base.client.rest.SimpleRestTemplate">
+	<constructor-arg> 
+		<bean class="org.springframework.http.client.SimpleClientHttpRequestFactory"> 
+			<property name="connectTimeout" value="${connectTimeout}" />
+			<property name="readTimeout" value="${readTimeout}" /> 
+		</bean> 
+	</constructor-arg>
+</bean>
+<bean id="basePlatformInvoker" class="cn.boxiao.bxn.base.client.rest.BasePlatformInvokerImpl">
+    <property name="baseUrl" value="${remote.base_platform_url}"></property>
+    <property name="currentAppKey" value="${remote.current_app_key}"></property>
+    <property name="currentAppPassword" value="${remote.current_app_password}"></property>
+    <property name="restTemplate" ref="restTemplate"/>
+</bean>
+<bean id="restServiceLocationCache" class="cn.boxiao.bxn.base.client.rest.cache.CommonRestServiceLocationCache"></bean>
+<bean id="remoteUserCenterServiceInvoker" class="cn.boxiao.bxn.uic.client.rest.RestUserCenterServiceInvokerImpl">
+    <property name="basePlatformInvoker" ref="basePlatformInvoker"/>
+    <property name="restTemplate" ref="restTemplate"/>
+    <property name="locationCache" ref="restServiceLocationCache"/>
+</bean>
+<bean id="embServiceInvoker" class="cn.boxiao.bxn.base.client.rest.RestEMBServiceInvoker">
+    <property name="basePlatformInvoker" ref="basePlatformInvoker"/>
+    <property name="restTemplate" ref="restTemplate"/>
+    <property name="locationCache" ref="restServiceLocationCache"/>
+</bean>
+<bean id="platformHelpInvoker" class="cn.boxiao.bxn.base.client.rest.PlatformHelperInvokerImpl">
+        <property name="basePlatformInvoker" ref="basePlatformInvoker"/>
+        <property name="restTemplate" ref="restTemplate"/>
+        <property name="locationCache" ref="restServiceLocationCache"/>
+</bean>
+<!-- ================================================================================== -->
+<!--  **************** 密码加密器  **************** -->
+<!-- ================================================================================== -->
+<!-- 可以在security的配置里覆盖这个，id要一样,class也要一样 -->
+<bean id="passwordEncoder" class="cn.boxiao.bxn.common.security.BxnPlaintextPasswordEncoder"/>
+
+<!-- ================================================================================== -->
+<!--  **************** FreeMarker服务 ****************  -->
+<!-- ================================================================================== -->
+<bean id="freemarkerConfiguration" class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">
+    <property name="templateLoaderPath" value="/WEB-INF/template/ftl"/>
+    <property name="configLocation" value="classpath:freemarkconfig.properties"/>
+</bean>
+<bean id="freeMarkService" class="cn.boxiao.bxn.template.service.FreeMarkServiceImpl" scope="singleton">
+    <property name="configuration" ref="freemarkerConfiguration"/>
+</bean>
+
+<bean class="cn.boxiao.bxn.dataexport.word.service.WordExportHandler"></bean>
+
+<bean id="bxqSpringContextUtils" class="cn.boxiao.bxn.common.util.SpringContextUtils" lazy-init="false"/>
+</beans>
